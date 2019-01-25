@@ -47,12 +47,19 @@ namespace JSONParser
         /// <param name="sFile">JSON data File with full path.</param>
         public void Load(string sFile)
         {
-            StreamReader oStreamReader = new StreamReader(new FileStream(sFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite),
+            if (File.Exists(sFile))
+            {
+                StreamReader oStreamReader = new StreamReader(new FileStream(sFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite),
                                                           System.Text.Encoding.UTF8);
-            this.sJSONRaw = oStreamReader.ReadToEnd();
-            oStreamReader.Close();
+                this.sJSONRaw = oStreamReader.ReadToEnd();
+                oStreamReader.Close();
 
-            cJSONData = Parse(this.sJSONRaw);
+                cJSONData = Parse(this.sJSONRaw);
+            }
+            else
+            {
+                throw new System.ArgumentException("File does not exist.", "sFile");
+            }
         }
 
         /// <summary>
