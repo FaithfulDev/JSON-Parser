@@ -155,11 +155,11 @@ namespace JSONParser
         /// Get JSON data via key. Returns <c>null</c> if key is not found.
         /// </summary>
         /// <param name="sKey">JSON key.</param>
-        /// <returns>Value (could be int, string or <c>dictionary<string, object></c>).
-        /// Returns null if key does not exist.</returns>
-        public object GetValue(string sKey)
+        /// <param name="oDefault">Default value in case the key can not be found.</param>
+        /// <returns>Value of specified key. Returns default if key does not exist.</returns>
+        public object GetValue(string sKey, object oDefault)
         {
-            return GetValue(new string[] { sKey });
+            return GetValue(new string[] { sKey }, oDefault);
         }
 
         /// <summary>
@@ -167,9 +167,9 @@ namespace JSONParser
         /// Returns <c>null</c> if key is not found.
         /// </summary>
         /// <param name="aKeys">Series of keys provided as string array.</param>
-        /// <returns>Value (could be int, string or <c>dictionary<string, object></c>).
-        /// Returns null if key does not exist.</returns>
-        public object GetValue(string[] aKeys)
+        /// <param name="oDefault">Default value in case the key can not be found.</param>
+        /// <returns>Value of specified key. Returns default if key does not exist.</returns>
+        public object GetValue(string[] aKeys, object oDefault)
         {
 
             Dictionary<string, object> cData = cJSONData;
@@ -179,7 +179,7 @@ namespace JSONParser
 
                 if (!cData.ContainsKey(aKeys[i]))
                 {
-                    return null;
+                    return oDefault;
                 }
 
                 //Check if we are at the end of the key chain
@@ -195,7 +195,7 @@ namespace JSONParser
 
             }
 
-            return null;
+            return oDefault;
         }
 
         /// <summary>
