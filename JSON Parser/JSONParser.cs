@@ -101,6 +101,10 @@ namespace JSONParser
                 {
                     sJSON += oItem.Value;
                 }
+                else if (oItem.Value is bool)
+                {
+                    sJSON += oItem.Value;
+                }
                 else
                 {
                     sJSON += BuildJSON((Dictionary<string, object>)oItem.Value, iLevel + 1);
@@ -125,7 +129,7 @@ namespace JSONParser
             Dictionary<string, object> cData = new Dictionary<string, object>();
 
             foreach (Match sKeyValueMatch in
-                        new Regex("\"[\\w]+\":[ ]?(\"[^\"]*\"|[0-9]+|{[^}]*})", RegexOptions.Singleline).Matches(sJSON))
+                        new Regex("\"[\\w]+\":[ ]?(\"[^\"]*\"|[0-9]+|{[^}]*}|true|false)", RegexOptions.Singleline).Matches(sJSON))
             {
                 string sKeyValue = sKeyValueMatch.ToString();
                 string sItemKey;
@@ -146,6 +150,10 @@ namespace JSONParser
                 else if (new Regex("[0-9]+").IsMatch(sKeyValue))
                 {
                     oItemValue = int.Parse(sKeyValue);
+                }
+                else if (new Regex("true|false", RegexOptions.IgnoreCase).IsMatch(sKeyValue))
+                {
+                    oItemValue = bool.Parse(sKeyValue);
                 }
                 else
                 {
