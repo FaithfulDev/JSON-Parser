@@ -47,12 +47,19 @@ namespace JSONParser
         /// <param name="sFile">JSON data File with full path.</param>
         public void Load(string sFile)
         {
-            StreamReader oStreamReader = new StreamReader(new FileStream(sFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite),
+            if (File.Exists(sFile))
+            {
+                StreamReader oStreamReader = new StreamReader(new FileStream(sFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite),
                                                           System.Text.Encoding.UTF8);
-            this.sJSONRaw = oStreamReader.ReadToEnd();
-            oStreamReader.Close();
+                this.sJSONRaw = oStreamReader.ReadToEnd();
+                oStreamReader.Close();
 
-            cJSONData = Parse(this.sJSONRaw);
+                cJSONData = Parse(this.sJSONRaw);
+            }
+            else
+            {
+                throw new System.ArgumentException("File does not exist.", "sFile");
+            }
         }
 
         /// <summary>
@@ -94,6 +101,10 @@ namespace JSONParser
                 {
                     sJSON += oItem.Value;
                 }
+                else if (oItem.Value is bool)
+                {
+                    sJSON += oItem.Value.ToString().ToLower();
+                }
                 else
                 {
                     sJSON += BuildJSON((Dictionary<string, object>)oItem.Value, iLevel + 1);
@@ -118,7 +129,7 @@ namespace JSONParser
             Dictionary<string, object> cData = new Dictionary<string, object>();
 
             foreach (Match sKeyValueMatch in
-                        new Regex("\"[\\w]+\":[ ]?(\"[^\"]*\"|[0-9]+|{[^}]*})", RegexOptions.Singleline).Matches(sJSON))
+                        new Regex("\"[\\w]+\":[ ]?(\"[^\"]*\"|[0-9]+|{[^}]*}|true|false)", RegexOptions.Singleline).Matches(sJSON))
             {
                 string sKeyValue = sKeyValueMatch.ToString();
                 string sItemKey;
@@ -140,6 +151,10 @@ namespace JSONParser
                 {
                     oItemValue = int.Parse(sKeyValue);
                 }
+                else if (new Regex("true|false", RegexOptions.IgnoreCase).IsMatch(sKeyValue))
+                {
+                    oItemValue = bool.Parse(sKeyValue);
+                }
                 else
                 {
                     throw new System.ArgumentException(string.Format("\"{0}\" is not a valid JSON value.", sKeyValue), "sJSON");
@@ -155,11 +170,11 @@ namespace JSONParser
         /// Get JSON data via key. Returns <c>null</c> if key is not found.
         /// </summary>
         /// <param name="sKey">JSON key.</param>
-        /// <returns>Value (could be int, string or <c>dictionary<string, object></c>).
-        /// Returns null if key does not exist.</returns>
-        public object GetValue(string sKey)
+        /// <param name="oDefault">Default value in case the key can not be found.</param>
+        /// <returns>Value of specified key. Returns default if key does not exist.</returns>
+        public object GetValue(string sKey, object oDefault)
         {
-            return GetValue(new string[] { sKey });
+            return GetValue(new string[] { sKey }, oDefault);
         }
 
         /// <summary>
@@ -167,9 +182,9 @@ namespace JSONParser
         /// Returns <c>null</c> if key is not found.
         /// </summary>
         /// <param name="aKeys">Series of keys provided as string array.</param>
-        /// <returns>Value (could be int, string or <c>dictionary<string, object></c>).
-        /// Returns null if key does not exist.</returns>
-        public object GetValue(string[] aKeys)
+        /// <param name="oDefault">Default value in case the key can not be found.</param>
+        /// <returns>Value of specified key. Returns default if key does not exist.</returns>
+        public object GetValue(string[] aKeys, object oDefault)
         {
 
             Dictionary<string, object> cData = cJSONData;
@@ -179,7 +194,7 @@ namespace JSONParser
 
                 if (!cData.ContainsKey(aKeys[i]))
                 {
-                    return null;
+                    return oDefault;
                 }
 
                 //Check if we are at the end of the key chain
@@ -195,7 +210,7 @@ namespace JSONParser
 
             }
 
-            return null;
+            return oDefault;
         }
 
         /// <summary>
